@@ -1,0 +1,9 @@
+# Always combine with -p eaiops-cleanroom-<suffix>; never use on the primary project.
+services:
+  postgres:
+    ports: !reset []
+  app:
+    ports: !override
+      - "127.0.0.1:18000:8000"
+    environment:
+      ENVIRONMENT: cleanroom

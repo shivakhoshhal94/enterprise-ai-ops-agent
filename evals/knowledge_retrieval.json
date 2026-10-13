@@ -1,0 +1,18 @@
+[
+ {"id":"payment_procedure","kind":"policy","query":"How should I investigate a recorded payment discrepancy?","source":"payment_discrepancy_policy","section":"Investigation procedure"},
+ {"id":"installments_paraphrase","kind":"policy","query":"Does three installments mean payment_value times three?","source":"payment_discrepancy_policy","section":"Payment entry semantics"},
+ {"id":"fraud_concern","kind":"policy","query":"Does a mismatch between payment and item totals prove fraud?","source":"payment_discrepancy_policy","section":"Unconfirmed concerns"},
+ {"id":"approval","kind":"policy","query":"What approval is required before creating an internal order review?","source":"order_review_procedure","section":"Approval procedure"},
+ {"id":"retry","kind":"policy","query":"How do we safely retry a review action after a crash without duplicate cases?","source":"order_review_procedure","section":"Idempotent execution and audit"},
+ {"id":"urgent","kind":"policy","query":"When should I mark an order investigation as urgent?","source":"review_priority_guidelines","section":"High priority"},
+ {"id":"medium_default","kind":"policy","query":"What priority should a routine review use when urgency was not specified?","source":"review_priority_guidelines","section":"Medium priority"},
+ {"id":"low","kind":"policy","query":"What priority applies to a nonurgent informational follow-up?","source":"review_priority_guidelines","section":"Low priority"},
+ {"id":"seller","kind":"policy","query":"How should a seller-related concern be prepared for escalation?","source":"seller_escalation_policy","section":"Preparing seller escalation"},
+ {"id":"refund","kind":"policy","query":"Can this system issue a refund?","source":"customer_support_escalation","section":"Refund execution unavailable"},
+ {"id":"customer_contact","kind":"policy","query":"Can we use anonymized historical customer records to contact a real customer?","source":"customer_support_escalation","section":"Historical customer contact boundary"},
+ {"id":"iam","kind":"policy","query":"Does the approval shared secret identify an employee or provide enterprise SSO?","source":"data_interpretation_guide","section":"Demo approval identity"},
+ {"id":"canceled_count","kind":"transactional_boundary","query":"How many orders were canceled?","expected_behavior":"Retrieved policy text is not a numeric answer; use SQL-backed tools."},
+ {"id":"annual_revenue","kind":"transactional_boundary","query":"What was revenue in 2018?","expected_behavior":"SQL metric definition and data are required; retrieval is not revenue evidence."},
+ {"id":"astronomy","kind":"unrelated","query":"What is the orbital period of Neptune?","expected_behavior":"No relevant company policy; distances are diagnostic, not calibrated confidence."},
+ {"id":"baking","kind":"unrelated","query":"How do I bake a sourdough loaf?","expected_behavior":"No relevant company policy; ranked results must not be treated as an answer."}
+]

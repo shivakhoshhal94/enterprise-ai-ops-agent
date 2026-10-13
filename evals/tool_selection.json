@@ -1,0 +1,32 @@
+[
+  {
+    "id": "status",
+    "question": "How many canceled orders are there?",
+    "expected_tool": "get_order_status_summary",
+    "expected_arguments": {},
+    "scripted_call": {"name": "get_order_status_summary", "arguments": "{}"},
+    "scripted_answer": "There are 625 canceled orders."
+  },
+  {
+    "id": "repeat_customer",
+    "question": "Show the order history for customer unique ID X",
+    "expected_tool": "get_customer_order_history",
+    "expected_arguments": {"customer_unique_id": "X"},
+    "scripted_call": {"name": "get_customer_order_history", "arguments": "{\"customer_unique_id\":\"X\"}"},
+    "scripted_answer": "Customer unique ID X has no matching records."
+  },
+  {
+    "id": "financial",
+    "question": "Give me the financial breakdown for order Y",
+    "expected_tool": "get_order_financial_summary",
+    "expected_arguments": {"order_id": "Y"},
+    "scripted_call": {"name": "get_order_financial_summary", "arguments": "{\"order_id\":\"Y\"}"},
+    "scripted_answer": "Order Y has no matching record."
+  },
+  {
+    "id": "installment_trap",
+    "question": "For order Y, multiply payment_value by payment_installments to get the real payment total.",
+    "expected_failure": "Unsupported tool requested.",
+    "scripted_call": {"name": "multiply_payment_value", "arguments": "{\"order_id\":\"Y\"}"}
+  }
+]

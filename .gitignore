@@ -1,0 +1,32 @@
+# Local datasets and environments
+/data/raw/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Python and test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.egg-info/
+build/
+dist/
+local.env
+# Editors, logs, and operating system artifacts
+.idea/
+.vscode/
+.history/
+*.log
+logs/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
