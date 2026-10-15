@@ -1,4 +1,6 @@
-# Enterprise AI Operations Agent
+# CommerceOps Hub
+
+*Operations intelligence and controlled workflows for e-commerce teams*
 
 A production-oriented AI assistant that helps an e-commerce operations team answer business questions, find company guidance, and request internal reviews with human approval.
 
@@ -13,6 +15,32 @@ The language model does not receive unrestricted database or business-action acc
 The business data comes from the **Brazilian E-Commerce Public Dataset by Olist**: historical, anonymized e-commerce records. Company procedures are authored demo documents, and support tickets are synthetic examples rather than a live customer support system.
 
 This is a reference implementation with production-style safeguards, not a claim of complete production readiness.
+
+## CommerceOps Hub
+
+The visual application lets users ask free-form operational questions, view analytical results as charts and tables, consult company guidance with source attribution, inspect support issues, and combine multiple sources in one request. Internal review proposals require a separate human approval before execution.
+
+Streamlit communicates with the existing FastAPI backend over HTTP. It does not query PostgreSQL, call OpenAI directly, or duplicate backend business logic.
+
+![CommerceOps Hub overview with system status and recorded dataset metrics](docs/images/commerceops-overview.png)
+
+### Visual analytics
+
+A natural-language analytical question goes through the guarded read-only SQL capability. The dashboard renders the actual returned values as a business-friendly visualization; chart values are not mocked or manually configured.
+
+![Top product categories by total item price from historical data](docs/images/analytics-top-categories.png)
+
+### Combining multiple sources
+
+One request can combine historical PostgreSQL financial totals with synthetic external support context through MCP. Source labels keep their provenance separate: a reported support concern is not automatically a verified financial discrepancy.
+
+![Historical financial totals alongside synthetic external support tickets](docs/images/financial-support.png)
+
+### Human-approved actions
+
+The assistant can prepare an internal review proposal, but execution requires a separate human decision. LangGraph persists the pending workflow so it can resume after approval. The dashboard displays the returned state and does not provide approval controls; the request shown below is awaiting approval, with no business action executed.
+
+![Internal review request awaiting human approval with no business action executed](docs/images/human-approval.png)
 
 ## Example questions and use cases
 
@@ -33,19 +61,20 @@ The supported business action is an **internal order review case**. The assistan
 - **Seven controlled assistant tools** for business facts, flexible analytics, company guidance, support context, and review proposals.
 - **Saved approval workflows:** pending requests persist across restarts, and retries do not create duplicate business records.
 - **Separate data access:** historical records, company documents, support tickets, and new review cases have distinct access paths.
-- **Verified baseline:** 1,114 passing tests and 312 deterministic evaluation checks.
+- **Verified baseline:** 1,199 passing tests and 312 deterministic evaluation checks.
 - **Reproducible runtime:** Docker/Compose packaging and verified setup from an empty database.
 - **Operational visibility:** structured logs, request tracking, dependency time limits, and separate checks for process health and service readiness.
 
 ## Architecture
 
-FastAPI provides typed request and response contracts. The AI orchestration layer uses OpenAI to interpret questions and select tools; application code controls their execution.
+CommerceOps Hub is a Streamlit HTTP client of FastAPI, which provides typed request and response contracts. One AI assistant uses OpenAI to interpret questions and orchestrate seven controlled tools; application code validates and executes them. These are tools, not seven separate agents.
 
 RAG (retrieval-augmented generation) supplies relevant company document passages to the model, using pgvector for similarity search. MCP (Model Context Protocol) connects the assistant to the separate support server. LangGraph saves the approval workflow's state in PostgreSQL so it can resume after a human decision.
 
 ```mermaid
 flowchart TD
-    U[User] --> API[FastAPI]
+    U[User] --> UI[CommerceOps Hub: Streamlit]
+    UI --> API[FastAPI]
     API --> A[Bounded AI orchestration]
     A <--> O[OpenAI: Responses and embeddings]
     A --> B[Deterministic business tools]
@@ -77,6 +106,8 @@ flowchart TD
 The MCP server runs as a separate stdio process and returns explicitly synthetic support records. It represents an external system boundary, rather than another database table or a real CRM integration.
 
 Historical tables are not modified by assistant workflows. Operational cases and audit events live separately from historical data; LangGraph owns its checkpoint persistence. OpenAI is an external model and embedding provider, so selected tool evidence and embedding inputs cross that provider boundary.
+
+The API can return bounded, typed presentation data projected from executed tool results. The dashboard chooses charts, tables, financial summaries, or ticket cards from those values without another model call or a second business-query implementation.
 
 See [architecture and trust boundaries](docs/architecture.md) for persistence ownership and enforcement details.
 
@@ -136,7 +167,7 @@ These are recorded verification results, not performance guarantees or a new tes
 
 | Verification | Recorded result |
 | --- | --- |
-| Complete pytest suite, warnings enabled | **1,114 passed**, no warnings |
+| Complete pytest suite, warnings enabled | **1,199 passed** |
 | Offline deterministic evaluation runner | **312 checks passed** |
 | Assistant capability inventory | **7 tools** |
 | Knowledge ingestion | **6 documents / 25 chunks** |
@@ -144,7 +175,7 @@ These are recorded verification results, not performance guarantees or a new tes
 | Isolated end-to-end acceptance | Read paths, proposal, approval/retry, and rejection verified |
 | Historical integrity checks | Counts and fingerprints unchanged by read-only acceptance |
 
-Tests cover business semantics, SQL guardrails, routing, proposal validation, retrieval, durable approval, idempotency, API errors, observability, and MCP success/failure/cleanup. Normal unit tests do not require Docker or live OpenAI calls. Live acceptance is separate and uses actual dependencies.
+Tests cover dashboard rendering and presentation data, business semantics, SQL guardrails, routing, proposal validation, retrieval, durable approval, idempotency, API errors, observability, and MCP success/failure/cleanup. Normal unit tests do not require Docker or live OpenAI calls. Live acceptance is separate and uses actual dependencies.
 
 ### Historical ingestion reconciliation
 
@@ -173,6 +204,7 @@ Model routing and generated SQL remain nondeterministic. Passing acceptance demo
 
 | Layer | Technologies |
 | --- | --- |
+| Visual application | Streamlit, HTTP client, adaptive charts and result cards |
 | Runtime and API | Python 3.12, FastAPI, Pydantic, pydantic-settings, Uvicorn |
 | Persistence | PostgreSQL 17, SQLAlchemy, Psycopg, Alembic |
 | AI and orchestration | OpenAI Responses API, LangGraph, PostgreSQL checkpointer |
@@ -206,6 +238,38 @@ Open `http://127.0.0.1:8000/docs`. If port 8000 is reserved locally, set `APP_PO
 
 The [operational runbook](docs/runbook.md) contains configuration, isolated acceptance, integrity checks, troubleshooting, and shutdown instructions. Run action acceptance only against its designated isolated environment.
 
+## Run the visual demo
+
+Run from the repository root against a database already prepared using the [setup runbook](docs/runbook.md#one-time-setup-powershell). Install the optional interface dependencies:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e ".[dev,demo]" -c constraints.txt
+```
+
+For a native backend, configure host database URLs with `localhost` in ignored `.env` / `local.env`. Settings reads `.env`; Uvicorn's `--env-file local.env` also loads that file into the process environment. Keep credentials local.
+
+**Terminal 1 — PostgreSQL** (use your configured Docker environment file):
+
+```powershell
+docker compose --env-file .env.docker up -d postgres
+```
+
+**Terminal 2 — FastAPI:**
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn enterprise_ai_ops_agent.main:app --env-file local.env --host 127.0.0.1 --port 8000 --no-access-log
+```
+
+**Terminal 3 — CommerceOps Hub:**
+
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run demo/app.py
+```
+
+Open [localhost:8501](http://localhost:8501). The module command uses the installed environment and supports the dashboard's package imports. `DEMO_API_URL` can override the default backend origin, `http://127.0.0.1:8000`.
+
+Alternatively, use the configured Docker backend from Quick start and launch only Terminal 3. Do not start both backends on port 8000. Overview dataset cards show recorded verification metrics, not live production KPIs. Readiness indicators include configuration checks, not live proof of OpenAI or MCP availability.
+
 ## Example API usage
 
 | Endpoint | Responsibility |
@@ -227,19 +291,6 @@ $body = @{ question = 'How many orders were canceled?' } | ConvertTo-Json
 Invoke-RestMethod "$base/ask" -Method Post -ContentType 'application/json' -Body $body
 ```
 
-Representative response structure; answer wording can vary:
-
-```json
-{
-  "answer": "625 orders were canceled in the historical dataset.",
-  "tool_calls": [{"tool_name": "get_order_status_summary", "arguments": {}}],
-  "action_proposal": null,
-  "workflow": null,
-  "knowledge_sources": [],
-  "external_sources": []
-}
-```
-
 Responses carry `X-Request-ID` for correlation. Approval examples and their safety prerequisites are documented in the [runbook](docs/runbook.md).
 
 ## Repository structure
@@ -256,13 +307,15 @@ src/enterprise_ai_ops_agent/
   integrations/   Read-only MCP client boundary
   operations/     Validated proposals and transactional case actions
   workflows/      Durable LangGraph approval and checkpoint setup
+demo/             Streamlit HTTP client, presentation and visualizations
+.streamlit/       Local dashboard theme and server configuration
 mcp_servers/      Standalone synthetic support server and demo records
 knowledge/        Authored demo policy source documents
 migrations/       Operations and knowledge schema migrations
 evals/            Deterministic and optional live evaluations
 scripts/          Acceptance, integrity and secret scanning utilities
 tests/            Unit and deterministic regression coverage
-docs/             Architecture and operational runbook
+docs/             Architecture, operational runbook and real UI screenshots
 data/raw/         External Olist CSVs; ignored by Git
 ```
 

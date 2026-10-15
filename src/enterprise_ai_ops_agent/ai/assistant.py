@@ -11,6 +11,7 @@ from enterprise_ai_ops_agent.ai.knowledge_contracts import (
     KnowledgeSource, KnowledgeToolResult, financial_evidence_answer,
 )
 from enterprise_ai_ops_agent.ai.tool_schemas import TOOL_SCHEMAS
+from enterprise_ai_ops_agent.ai.presentation_data import PresentationData, project_tool_result
 from enterprise_ai_ops_agent.ai.schema_context import analytical_schema_context
 from enterprise_ai_ops_agent.config import Settings
 from enterprise_ai_ops_agent.operations.contracts import OrderReviewCaseProposal
@@ -172,6 +173,7 @@ class AssistantSupportError(AssistantToolError):
 
 class AssistantResult(BaseModel):
     answer: str
+    presentation_data: list["PresentationData"] = Field(default_factory=list, max_length=3, exclude_if=lambda value: not value)
     tool_calls: list[ToolCallTrace]
     action_proposal: OrderReviewCaseProposal | None = None
     workflow: WorkflowSummary | None = None
@@ -193,6 +195,7 @@ def ask_business_assistant(
         raise AssistantError("Tool round limit must be between one and three.")
     inputs = [{"role": "user", "content": question}]
     trace: list[ToolCallTrace] = []
+    presentation: list[PresentationData] = []
     action_proposal: OrderReviewCaseProposal | None = None
     sources: dict[tuple[str, str], KnowledgeSource] = {}
     knowledge_requested = False
@@ -226,6 +229,7 @@ def ask_business_assistant(
                     f"- {source.title} — {source.section}" for source in sources.values()
                 )
         return AssistantResult(answer=answer, tool_calls=trace, action_proposal=action_proposal,
+                               presentation_data=presentation,
                                knowledge_sources=list(sources.values()), external_sources=list(external.values()))
     analytical_correction_pending = False
     analytical_error_seen = False
@@ -306,6 +310,9 @@ def ask_business_assistant(
             action_proposal = executed.action_proposal
         else:
             trace.append(executed.trace)
+        projected = project_tool_result(call.name, executed.output_json)
+        if projected is not None:
+            presentation.append(projected)
         if call.name == "get_order_financial_summary":
             financial_data = json.loads(executed.output_json)
         # Preserve all output items, including reasoning items, internally for continuation.

@@ -407,7 +407,7 @@ def test_openapi_ready_and_unchanged_business_contract():
     assert set(schema['components']['schemas']['ReadinessChecks']['properties'])=={
         'database','analytics','knowledge','workflow','openai_configuration','approval_configuration','mcp_configuration'}
     assert set(schema['components']['schemas']['AssistantResult']['properties'])=={
-        'answer','tool_calls','action_proposal','workflow','knowledge_sources','external_sources'}
+        'answer','tool_calls','action_proposal','workflow','knowledge_sources','external_sources','presentation_data'}
     assert len(TOOL_SCHEMAS)==7 and {tool['name'] for tool in TOOL_SCHEMAS}==obs.TOOLS
 
 

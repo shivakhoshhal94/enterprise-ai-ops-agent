@@ -147,7 +147,8 @@ def test_openapi_contract():
     models=schema['components']['schemas']
     assert models['AskRequest']['additionalProperties'] is False
     assert models['AskRequest']['properties']['question']['maxLength']==api.MAX_QUESTION_LENGTH
-    assert set(models['AssistantResult']['properties'])=={'answer','tool_calls','action_proposal','workflow','knowledge_sources','external_sources'}
+    assert set(models['AssistantResult']['properties'])=={'answer','tool_calls','action_proposal','workflow','knowledge_sources','external_sources','presentation_data'}
+    assert 'presentation_data' not in models['AssistantResult']['required']
     assert set(models['ToolCallTrace']['properties'])=={'tool_name','arguments'}
     for name in ('OPENAI_API_KEY','DATABASE_URL','openai_api_key','database_url'):
         assert name not in str(schema)

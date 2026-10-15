@@ -1,5 +1,6 @@
 # Local datasets and environments
 /data/raw/
+/artifacts/linkedin/
 .venv/
 venv/
 .env
