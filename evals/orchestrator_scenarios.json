@@ -1,0 +1,32 @@
+[
+  {
+    "id": "business",
+    "question": "How many orders were canceled?",
+    "tools": ["get_order_status_summary"]
+  },
+  {
+    "id": "analytics",
+    "question": "How many historical orders are recorded?",
+    "tools": ["run_analytical_query"]
+  },
+  {
+    "id": "knowledge",
+    "question": "What does demo company policy say about payment discrepancies?",
+    "tools": ["search_company_knowledge"]
+  },
+  {
+    "id": "support",
+    "question": "What support issues were reported for order 03ecec245220b63fd7f68c1737ba99ba?",
+    "tools": ["get_support_context"]
+  },
+  {
+    "id": "financial_support",
+    "question": "For order 03ecec245220b63fd7f68c1737ba99ba, compare the recorded financial totals with any reported support issues.",
+    "tools": ["get_order_financial_summary", "get_support_context"]
+  },
+  {
+    "id": "proposal",
+    "question": "Create an internal review proposal for order 03ecec245220b63fd7f68c1737ba99ba because the reported support issue should be reviewed.",
+    "tools": ["propose_order_review_case"]
+  }
+]

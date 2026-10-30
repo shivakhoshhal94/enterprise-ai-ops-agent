@@ -55,3 +55,46 @@ routing accuracy, latency or cost. Orchestration control flow exists in two
 modules temporarily to preserve the stable implementation for comparison; future
 policy changes require parity review. No live provider or database check is
 performed by these unit tests.
+
+## Comparing the paths
+
+The shared cases in `evals/orchestrator_scenarios.json` cover business lookup,
+analytics, company guidance, support, financial-plus-support and a review proposal.
+The runner follows the existing deterministic evaluation convention: it runs
+pytest with the existing SDK-shaped fake provider and controlled-tool fixtures.
+No new model adapter, evaluation framework or live API mode is introduced.
+
+```powershell
+.\.venv\Scripts\python.exe evals/compare_orchestrators.py
+.\.venv\Scripts\python.exe evals/compare_orchestrators.py --orchestrator responses
+.\.venv\Scripts\python.exe evals/compare_orchestrators.py --orchestrator langgraph
+```
+
+Each scenario emits a safe `ORCHESTRATION_RESULT` JSON record with completion,
+expected tool match, executed call count, multi-tool completion, public contract,
+source separation, proposal-only checks and elapsed milliseconds. Pytest failures
+produce a nonzero exit code. Dependency exceptions appear as failed scenarios,
+not fabricated success records. Timing covers orchestration with fake dependencies,
+including graph construction; it excludes real provider, database, embedding and
+MCP transport latency. It is diagnostic timing, not a production benchmark.
+
+FastAPI startup tests select each implementation through the actual environment
+setting and exercise `/health`, `/ask` and OpenAPI using TestClient. External
+dependencies are fake; this does not certify live OpenAI credentials or real
+database/MCP availability. Existing guardrail and orchestration regression tests
+remain necessary: six representative scenarios are not a security proof.
+
+Both implementations serve the same contract. The direct loop has less control-flow
+machinery; LangGraph makes the agent/tool branches and request state explicit.
+Neither changes tool permissions or replaces the separate human-approval graph.
+These offline checks compare handling of scripted decisions, not which framework
+makes a model select better tools. Live task success, latency and cost require a
+separately authorized, repeated experiment with actual dependencies.
+
+Recorded offline comparison: both paths passed all six scenarios (seven controlled
+tool executions per path, including the two-tool financial/support case). Contract,
+source separation and proposal-only checks passed for both. No behavioral difference
+was detected within this set. Both FastAPI startup/HTTP-contract tests passed.
+An explicit local Uvicorn run with `AGENT_ORCHESTRATOR=langgraph` also verified
+`/health`, the `/ask` OpenAPI response schema and invalid-input rejection. Positive
+`/ask` execution was verified with fake dependencies, not live OpenAI/database access.
