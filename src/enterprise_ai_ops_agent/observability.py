@@ -105,7 +105,7 @@ def emit(event: str, component: str, **fields):
     try:
         allowed = {"duration_ms", "outcome", "error_category", "method", "route", "status_code",
                    "tool_name", "tool_names", "tool_count", "has_knowledge_sources", "has_external_sources",
-                   "has_action_proposal", "has_workflow"}
+                   "has_action_proposal", "has_workflow", "agent_orchestrator"}
         envelope = {"timestamp":datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
                     "level":"INFO", "event":event, "component":component, "request_id":request_id.get()}
         envelope.update({key:value for key,value in fields.items() if key in allowed})

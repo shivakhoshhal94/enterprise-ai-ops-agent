@@ -32,7 +32,11 @@ def main(argv: list[str] | None = None) -> int:
             print("AI configuration error: check DATABASE_URL, OPENAI_API_KEY, and OPENAI_MODEL.", file=sys.stderr)
             return 1
         try:
-            result = ask_business_assistant(arguments.question, client=client, engine=engine, model=settings.openai_model, settings=settings)
+            orchestrator = ask_business_assistant
+            if settings.agent_orchestrator == "langgraph":
+                from enterprise_ai_ops_agent.ai.langgraph_assistant import ask_langgraph_assistant
+                orchestrator = ask_langgraph_assistant
+            result = orchestrator(arguments.question, client=client, engine=engine, model=settings.openai_model, settings=settings)
         except AssistantError as error:
             print(str(error), file=sys.stderr)
             return 1

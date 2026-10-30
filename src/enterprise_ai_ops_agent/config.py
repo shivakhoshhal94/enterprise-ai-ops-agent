@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     openai_api_key: SecretStr | None = None
     approval_api_key: SecretStr | None = None
     openai_model: str = Field(default="gpt-4.1-mini", min_length=1)
+    agent_orchestrator: Literal["responses", "langgraph"] = "responses"
     openai_embedding_model: str = Field(default="text-embedding-3-small", min_length=1)
     openai_embedding_dimensions: int = Field(default=1536, ge=1536, le=1536)
     knowledge_database_url: SecretStr | None = None

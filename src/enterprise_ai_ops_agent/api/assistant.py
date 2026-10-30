@@ -58,7 +58,13 @@ def get_assistant(request: Request) -> AssistantCallable:
                 resources.callback(client.close)
             except (ValueError, SQLAlchemyError, OpenAIError):
                 raise safe_failure(503, "Assistant service is not configured or available.", "configuration_error") from None
-            return ask_business_assistant(
+            orchestrator = ask_business_assistant
+            if settings.agent_orchestrator == "langgraph":
+                from enterprise_ai_ops_agent.ai.langgraph_assistant import ask_langgraph_assistant
+                orchestrator = ask_langgraph_assistant
+            from enterprise_ai_ops_agent.observability import emit
+            emit("agent_orchestrator_selected", "assistant", agent_orchestrator=settings.agent_orchestrator)
+            return orchestrator(
                 question, client=client, engine=engine, model=settings.openai_model, settings=settings,
             )
 
